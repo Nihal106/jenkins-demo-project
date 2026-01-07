@@ -16,3 +16,18 @@
         name: docker
         state: started
         enabled: true
+
+    - name: Remove existing container (if any)
+      docker_container:
+        name: myapp
+        state: absent
+      ignore_errors: yes
+
+    - name: Run application container
+      docker_container:
+        name: myapp
+        image: myapp:1.0
+        state: started
+        restart_policy: always
+        ports:
+          - "80:8080"
