@@ -21,7 +21,7 @@ provider "aws" {
 # SECURITY GROUP
 ############################################
 resource "aws_security_group" "app_sg" {
-  name        = "jenkins-app-sg2"
+  name        = "jenkins-app-sg3"
   description = "Security group for Jenkins deployed app"
 
   # SSH Access (Ansible / Jenkins)
