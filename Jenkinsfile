@@ -168,7 +168,7 @@ http://<SONARQUBE-IP>:9000/dashboard?id=jenkins-demo
       steps {
         sh '''
           echo "⚙️ Configuring server using Ansible"
-          cd jenkins-demo/ansible
+          cd jenkins-demo-project/ansible
           ansible-playbook -i inventory deploy.yml
         '''
       }
