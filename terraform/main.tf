@@ -59,7 +59,7 @@ resource "aws_security_group" "app_sg" {
 ############################################
 resource "aws_instance" "app_server" {
   ami                    = "ami-0fc5d935ebf8bc3bc"   # Ubuntu 22.04 (us-east-1)
-  instance_type          = "t2.micro"
+  instance_type          = "t3.micro"
   key_name               = "keypair"
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
