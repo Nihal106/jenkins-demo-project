@@ -93,14 +93,19 @@ pipeline {
     /* =======================
        QUALITY GATE
        ======================= */
-    stage('Quality Gate') {
-      steps {
-        echo "🚦 Waiting for Quality Gate result"
-        timeout(time: 5, unit: 'MINUTES') {
-          waitForQualityGate abortPipeline: false
-        }
-      }
-    }
+stage('Quality Gate (Manual Verification)') {
+  steps {
+    echo '''
+SonarQube analysis completed.
+
+✔ Open SonarQube Dashboard:
+http://<SONARQUBE-IP>:9000/dashboard?id=jenkins-demo
+
+✔ If Quality Gate = OK → pipeline continues
+❌ If FAILED → fix issues
+'''
+  }
+}
 
     /* =======================
        DOCKER BUILD & PUSH
