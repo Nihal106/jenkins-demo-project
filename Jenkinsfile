@@ -20,8 +20,8 @@ pipeline {
       steps {
         sh '''
           echo "📥 Cloning source code..."
-          rm -rf jenkins-demo || true
-          git clone https://github.com/Nihal106/jenkins-demo.git
+          rm -rf jenkins-demo-project || true
+          git clone https://github.com/Nihal106/jenkins-demo-project.git
         '''
       }
     }
@@ -33,7 +33,7 @@ pipeline {
       steps {
         sh '''
           echo "🔨 Building application (skip tests)"
-          cd jenkins-demo
+          cd jenkins-demo-project
           mvn -B clean package -DskipTests
         '''
       }
