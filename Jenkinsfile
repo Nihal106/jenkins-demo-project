@@ -2,24 +2,29 @@ pipeline {
   agent { label 'jenkins-aws' }
 
   options {
-    skipDefaultCheckout(true)   // manual checkout
+    skipDefaultCheckout(true)
     timestamps()
     disableConcurrentBuilds()
   }
 
   stages {
 
+    /* =======================
+       SOURCE CODE CHECKOUT
+       ======================= */
     stage('Checkout') {
       steps {
         sh '''
-          echo "📥 Cloning source code on agent..."
+          echo "📥 Cloning source code..."
           rm -rf jenkins-demo || true
           git clone https://github.com/Nihal106/jenkins-demo.git
-          cd jenkins-demo
         '''
       }
     }
 
+    /* =======================
+       BUILD APPLICATION
+       ======================= */
     stage('Build') {
       steps {
         sh '''
@@ -30,6 +35,9 @@ pipeline {
       }
     }
 
+    /* =======================
+       PARALLEL QUALITY CHECKS
+       ======================= */
     stage('Parallel Checks') {
       parallel {
 
@@ -55,30 +63,32 @@ pipeline {
       }
     }
 
-stage('SonarQube Scan') {
-  steps {
-    script {
-      // Load Sonar Scanner tool into PATH
-      def scannerHome = tool 'sonar-scanner'
-
-      withSonarQubeEnv('sonarqube') {
-        sh """
-          echo "🔐 Running SonarQube scan (CLI)"
-          export PATH=${scannerHome}/bin:\$PATH
-          cd jenkins-demo
-          sonar-scanner \
-            -Dsonar.projectKey=jenkins-demo \
-            -Dsonar.projectName=jenkins-demo \
-            -Dsonar.sources=src \
-            -Dsonar.java.binaries=target
-        """
+    /* =======================
+       SONARQUBE SCAN
+       ======================= */
+    stage('SonarQube Scan') {
+      steps {
+        script {
+          def scannerHome = tool 'sonar-scanner'
+          withSonarQubeEnv('sonarqube') {
+            sh """
+              echo "🔐 Running SonarQube scan"
+              export PATH=${scannerHome}/bin:\$PATH
+              cd jenkins-demo
+              sonar-scanner \
+                -Dsonar.projectKey=jenkins-demo \
+                -Dsonar.projectName=jenkins-demo \
+                -Dsonar.sources=src \
+                -Dsonar.java.binaries=target
+            """
+          }
+        }
       }
     }
-  }
-}
 
-
-
+    /* =======================
+       QUALITY GATE
+       ======================= */
     stage('Quality Gate') {
       steps {
         echo "🚦 Waiting for Quality Gate result"
@@ -88,6 +98,9 @@ stage('SonarQube Scan') {
       }
     }
 
+    /* =======================
+       DOCKER BUILD
+       ======================= */
     stage('Docker Build') {
       steps {
         sh '''
@@ -97,8 +110,52 @@ stage('SonarQube Scan') {
         '''
       }
     }
+
+    /* =======================
+       TERRAFORM – PROVISION INFRA
+       ======================= */
+    stage('Terraform Apply') {
+      steps {
+        sh '''
+          echo "🌍 Provisioning infrastructure using Terraform"
+          cd jenkins-demo/terraform
+          terraform init
+          terraform apply -auto-approve
+        '''
+      }
+    }
+
+    /* =======================
+       GENERATE ANSIBLE INVENTORY
+       ======================= */
+    stage('Generate Ansible Inventory') {
+      steps {
+        sh '''
+          echo "📝 Generating Ansible inventory from Terraform output"
+          cd jenkins-demo/terraform
+          PUBLIC_IP=$(terraform output -raw app_server_public_ip)
+          sed "s/\\${public_ip}/$PUBLIC_IP/" ../ansible/inventory.tpl > ../ansible/inventory
+        '''
+      }
+    }
+
+    /* =======================
+       ANSIBLE CONFIGURATION
+       ======================= */
+    stage('Configure Server (Ansible)') {
+      steps {
+        sh '''
+          echo "⚙️ Configuring server using Ansible"
+          cd jenkins-demo/ansible
+          ansible-playbook -i inventory deploy.yml
+        '''
+      }
+    }
   }
 
+  /* =======================
+     POST ACTIONS
+     ======================= */
   post {
     success {
       emailext(
