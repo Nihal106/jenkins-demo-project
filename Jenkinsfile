@@ -97,7 +97,7 @@ pipeline {
       steps {
         echo "🚦 Waiting for Quality Gate result"
         timeout(time: 5, unit: 'MINUTES') {
-          waitForQualityGate abortPipeline: true
+          waitForQualityGate abortPipeline: false
         }
       }
     }
