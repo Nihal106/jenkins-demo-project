@@ -140,7 +140,7 @@ http://<SONARQUBE-IP>:9000/dashboard?id=jenkins-demo
       steps {
         sh '''
           echo "🌍 Provisioning infrastructure using Terraform"
-          cd jenkins-demo/terraform
+          cd jenkins-demo-project/terraform
           terraform init
           terraform apply -auto-approve
         '''
@@ -154,7 +154,7 @@ http://<SONARQUBE-IP>:9000/dashboard?id=jenkins-demo
       steps {
         sh '''
           echo "📝 Generating Ansible inventory from Terraform output"
-          cd jenkins-demo/terraform
+          cd jenkins-demo-project/terraform
           PUBLIC_IP=$(terraform output -raw app_server_public_ip)
           sed "s/\\${public_ip}/$PUBLIC_IP/" ../ansible/inventory.tpl > ../ansible/inventory
         '''
