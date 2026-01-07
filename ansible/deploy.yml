@@ -2,32 +2,17 @@
   become: true
 
   tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-
     - name: Install Docker
       apt:
         name: docker.io
         state: present
+        update_cache: yes
 
-    - name: Start Docker service
-      service:
-        name: docker
-        state: started
-        enabled: true
-
-    - name: Remove existing container (if any)
+    - name: Pull application image
       docker_container:
-        name: myapp
-        state: absent
-      ignore_errors: yes
-
-    - name: Run application container
-      docker_container:
-        name: myapp
-        image: myapp:1.0
+        name: jenkins-demo
+        image: nihalpk/jenkins-demo:latest
         state: started
-        restart_policy: always
+        recreate: yes
         ports:
           - "80:8080"
