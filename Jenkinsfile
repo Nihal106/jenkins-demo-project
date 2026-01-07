@@ -1,6 +1,10 @@
 pipeline {
   agent { label 'jenkins-aws' }
 
+  environment {
+    DOCKER_IMAGE = "nihalpk/jenkins-demo"   // Docker Hub repo
+  }
+
   options {
     skipDefaultCheckout(true)
     timestamps()
@@ -99,15 +103,28 @@ pipeline {
     }
 
     /* =======================
-       DOCKER BUILD
+       DOCKER BUILD & PUSH
        ======================= */
-    stage('Docker Build') {
+    stage('Docker Build & Push') {
       steps {
-        sh '''
-          echo "🐳 Building Docker image"
-          cd jenkins-demo
-          docker build -t myapp:1.0 .
-        '''
+        withCredentials([usernamePassword(
+          credentialsId: 'dockerhub-creds',
+          usernameVariable: 'DOCKER_USER',
+          passwordVariable: 'DOCKER_PASS'
+        )]) {
+          sh '''
+            echo "🐳 Building & pushing Docker image"
+            cd jenkins-demo
+
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+            docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} .
+            docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
+
+            docker push $DOCKER_IMAGE:${BUILD_NUMBER}
+            docker push $DOCKER_IMAGE:latest
+          '''
+        }
       }
     }
 
@@ -162,8 +179,7 @@ pipeline {
         subject: "✅ SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
         body: """
 Build Status : SUCCESS
-Job Name     : ${JOB_NAME}
-Build Number : ${BUILD_NUMBER}
+Docker Image : ${DOCKER_IMAGE}:${BUILD_NUMBER}
 Build URL    : ${BUILD_URL}
 """,
         to: "nihalpk10006@gmail.com"
@@ -176,8 +192,7 @@ Build URL    : ${BUILD_URL}
         body: """
 Build Status : FAILED
 Job Name     : ${JOB_NAME}
-Build Number : ${BUILD_NUMBER}
-Check Logs   : ${BUILD_URL}
+Build URL    : ${BUILD_URL}
 """,
         to: "nihalpk10006@gmail.com"
       )
