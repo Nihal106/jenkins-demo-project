@@ -2,17 +2,39 @@
   become: true
 
   tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
     - name: Install Docker
       apt:
         name: docker.io
         state: present
-        update_cache: yes
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install Python Docker SDK
+      apt:
+        name: python3-docker
+        state: present
 
     - name: Pull application image
+      docker_image:
+        name: nihalpk/jenkins-demo
+        tag: latest
+        source: pull
+
+    - name: Run application container
       docker_container:
         name: jenkins-demo
         image: nihalpk/jenkins-demo:latest
         state: started
+        restart_policy: always
         recreate: yes
-        ports:
+        published_ports:
           - "80:8080"
