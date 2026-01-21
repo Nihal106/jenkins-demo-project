@@ -183,7 +183,7 @@ stage('Configure Server (Ansible)') {
     }
   }
 }
-
+  }
   /* =======================
      POST ACTIONS
      ======================= */
