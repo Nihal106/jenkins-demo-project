@@ -78,7 +78,7 @@ pipeline {
             sh """
               echo "🔐 Running SonarQube scan"
               export PATH=${scannerHome}/bin:\$PATH
-              cd jenkins-demo
+              cd jenkins-demo-project
               sonar-scanner \
                 -Dsonar.projectKey=jenkins-demo \
                 -Dsonar.projectName=jenkins-demo \
