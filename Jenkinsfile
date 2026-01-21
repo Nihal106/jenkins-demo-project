@@ -49,7 +49,7 @@ pipeline {
           steps {
             sh '''
               echo "🧪 Running unit tests"
-              cd jenkins-demo
+              cd jenkins-demo-project
               mvn -B test
             '''
           }
@@ -59,7 +59,7 @@ pipeline {
           steps {
             sh '''
               echo "🔍 Running static validation checks"
-              cd jenkins-demo
+              cd jenkins-demo-project
               mvn -B validate
             '''
           }
@@ -119,7 +119,7 @@ http://<SONARQUBE-IP>:9000/dashboard?id=jenkins-demo
         )]) {
           sh '''
             echo "🐳 Building & pushing Docker image"
-            cd jenkins-demo
+            cd jenkins-demo-project
 
             docker login -u $DOCKER_USER -p $DOCKER_PASS
 
