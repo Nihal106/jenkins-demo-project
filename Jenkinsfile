@@ -164,16 +164,25 @@ http://<SONARQUBE-IP>:9000/dashboard?id=jenkins-demo
     /* =======================
        ANSIBLE CONFIGURATION
        ======================= */
-    stage('Configure Server (Ansible)') {
-      steps {
-        sh '''
-          echo "⚙️ Configuring server using Ansible"
-          cd jenkins-demo-project/ansible
-          ansible-playbook -i inventory deploy.yml
-        '''
-      }
+stage('Configure Server (Ansible)') {
+  steps {
+    withCredentials([
+      sshUserPrivateKey(
+        credentialsId: 'aws-ssh-key1',
+        keyFileVariable: 'SSH_KEY'
+      )
+    ]) {
+      sh '''
+        echo "⚙️ Configuring server using Ansible"
+        chmod 600 $SSH_KEY
+        cd jenkins-demo-project/ansible
+        ansible-playbook \
+          -i inventory deploy.yml \
+          --private-key=$SSH_KEY
+      '''
     }
   }
+}
 
   /* =======================
      POST ACTIONS
